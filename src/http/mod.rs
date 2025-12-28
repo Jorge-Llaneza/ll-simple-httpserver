@@ -1,3 +1,3 @@
 pub mod parser;
-pub mod httpResponse;
+pub mod http_response;
 mod uri;
