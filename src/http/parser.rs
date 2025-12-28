@@ -54,6 +54,16 @@ impl HttpRequest{
             headers
         }
     }
+    pub fn get_headers(&self) -> &Vec<Header> {
+        &self.headers
+    }
+    pub fn get_header(&self, index: usize) -> Option<&Header> {
+        self.headers.get(index)
+    }
+
+    pub fn get_request_line(&self) -> &RequestLine {
+        &self.request_line
+    }
 }
 
 impl FromStr for HttpRequest {
@@ -98,14 +108,14 @@ impl FromStr for HttpRequest {
 }
 
 
-struct RequestLine{
+pub struct RequestLine{
     verb: Verb ,
     protocol: String,
     url: Uri,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum Header {
+pub enum Header {
     Host(String),
     Accept(String),
     Authorization(String),
