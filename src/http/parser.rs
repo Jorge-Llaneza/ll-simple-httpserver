@@ -114,6 +114,12 @@ pub struct RequestLine{
     url: Uri,
 }
 
+impl RequestLine{
+    pub fn verb(&self) -> &Verb{&self.verb}
+    pub fn protocol(&self) -> &str{&self.protocol}
+    pub fn url(&self) -> &Uri{&self.url}
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Header {
     Host(String),
@@ -126,7 +132,7 @@ pub enum Header {
     OtherHeader(String, String),
 }
 #[derive(Debug, Clone, PartialEq)]
-enum Verb{
+pub enum Verb{
     Get,
     Post,
     Put,
