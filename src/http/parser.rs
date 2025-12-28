@@ -1,9 +1,10 @@
 use std::str::FromStr;
-use crate::http::parser::HttpParseError::{InvalidHttpVersion, InvalidUrl};
+use crate::http::parser::HttpParseError::{InvalidHttpVersion, InvalidUri};
+use crate::http::uri::Uri;
 
 #[derive(Debug)]
 pub enum  HttpParseError {
-    InvalidUrl,
+    InvalidUri,
     InvalidHttpMethod,
     InvalidHttpVersion,
     InvalidHeader,
@@ -12,7 +13,7 @@ pub enum  HttpParseError {
 impl std::fmt::Display for HttpParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            HttpParseError::InvalidUrl => write!(f, "Invalid URL"),
+            HttpParseError::InvalidUri => write!(f, "Invalid URL"),
             HttpParseError::InvalidHttpMethod => write!(f, "Invalid HTTP method"),
             HttpParseError::InvalidHttpVersion => write!(f, "Invalid HTTP version"),
             HttpParseError::InvalidHeader => write!(f, "Invalid header"),
@@ -38,7 +39,7 @@ impl HttpRequest {
     pub(crate) fn verb(&self) -> Verb {
         self.request_line.verb.clone()
     }
-    pub(crate) fn url(&self) -> Url {
+    pub(crate) fn url(&self) -> Uri {
         self.request_line.url.clone()
     }
     pub(crate) fn protocol(&self) -> String {
@@ -74,13 +75,13 @@ impl FromStr for HttpRequest {
         verb = Verb::from_str(request_headers[0])?;
 
 
-        Url::
-        match Url::from_str(request_headers[1]) {
+
+        match Uri::from_str(request_headers[1]) {
             Ok(_url) => url = _url,
-            Err(_) => return Err(InvalidUrl),
+            Err(_) => return Err(InvalidUri),
         }
 
-        protocol = request_headers[2].to_string();
+        protocol = request_headers[2].trim().to_lowercase();
 
         let headers = &lines[1..];
         //TODO parse headers
@@ -100,7 +101,7 @@ impl FromStr for HttpRequest {
 struct RequestLine{
     verb: Verb ,
     protocol: String,
-    url: Url,
+    url: Uri,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -157,7 +158,9 @@ mod tests {
             HttpRequest::from_str("gEt / HTtP/1.4").unwrap(),
             HttpRequest::from_str("gEt //users HTtP/1.5").unwrap(),
         ];
-        assert_eq!(requests[0].verb(), Verb::Get)
-
+        assert_eq!(requests[0].verb(), Verb::Get);
+        assert_eq!(requests[0].url(), Uri::from_str(" /api/users").unwrap());
+        assert_eq!(requests[1].verb(), Verb::Get);
+        assert_eq!(requests[1].protocol(), String::from("http/1.2"));
     }
 }
