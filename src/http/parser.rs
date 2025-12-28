@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use url::{Url, ParseError};
 use crate::http::parser::HttpParseError::{InvalidHttpVersion, InvalidUrl};
 
 #[derive(Debug)]
@@ -57,8 +56,8 @@ impl HttpRequest{
 }
 
 impl FromStr for HttpRequest {
-    type Err = ();
-    fn from_str(s: &str) -> Result<HttpRequest, HttpParseError> {
+    type Err = HttpParseError;
+    fn from_str(s: &str) -> Result<HttpRequest, Self::Err> {
         let verb;
         let url;
         let protocol;
@@ -75,6 +74,7 @@ impl FromStr for HttpRequest {
         verb = Verb::from_str(request_headers[0])?;
 
 
+        Url::
         match Url::from_str(request_headers[1]) {
             Ok(_url) => url = _url,
             Err(_) => return Err(InvalidUrl),
