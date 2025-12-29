@@ -136,7 +136,7 @@ fn parse_headers(headers: &[&str]) -> Result<Vec<Header>, HttpParseError> {
             _ => headers_vec.push(OtherHeader(parts[0].trim().to_string(), parts[1].trim().to_string()))
         }
     }
-    return Ok(vec![]);
+    return Ok(headers_vec);
 }
 
 pub struct RequestLine{

@@ -42,7 +42,7 @@ fn server(tx: mpsc::Sender<SocketAddr>) {
         let request = ll_simple_httpserver::http::parser::HttpRequest::from_str(header).unwrap();
 
         let headers = request.get_headers();
-        assert_eq!(headers.len(), 0); //TODO headers count should be 1
+        assert_eq!(headers.len(), 1); //TODO headers count should be 1
 
         let request_line = request.get_request_line();
 
