@@ -37,7 +37,9 @@ fn server(tx: mpsc::Sender<SocketAddr>) {
         let mut buff = [0; 1024];
         stream.read(&mut buff).unwrap();
         let contents = std::str::from_utf8(&buff).unwrap();
-        let request = ll_simple_httpserver::http::parser::HttpRequest::from_str(contents).unwrap();
+        let parts = contents.split_once("\r\n\r\n").unwrap();
+        let header = parts.0;
+        let request = ll_simple_httpserver::http::parser::HttpRequest::from_str(header).unwrap();
 
         let headers = request.get_headers();
         assert_eq!(headers.len(), 0); //TODO headers count should be 1

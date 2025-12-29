@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use crate::http::parser::Header::OtherHeader;
 use crate::http::parser::HttpParseError::{InvalidHttpVersion, InvalidUri};
 use crate::http::uri::Uri;
 
@@ -9,6 +10,7 @@ pub enum  HttpParseError {
     InvalidHttpVersion,
     InvalidHeader,
     InvalidRequest,
+    NonNumericContentLength
 }
 impl std::fmt::Display for HttpParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -18,6 +20,7 @@ impl std::fmt::Display for HttpParseError {
             HttpParseError::InvalidHttpVersion => write!(f, "Invalid HTTP version"),
             HttpParseError::InvalidHeader => write!(f, "Invalid header"),
             HttpParseError::InvalidRequest => write!(f, "Invalid request"),
+            HttpParseError::NonNumericContentLength => write!(f, "Non numeric content length"),
         }
     }
 }
@@ -68,6 +71,8 @@ impl HttpRequest{
 
 impl FromStr for HttpRequest {
     type Err = HttpParseError;
+
+    /// Parses the header of a http request
     fn from_str(s: &str) -> Result<HttpRequest, Self::Err> {
         let verb;
         let url;
@@ -95,6 +100,7 @@ impl FromStr for HttpRequest {
 
         let headers = &lines[1..];
         //TODO parse headers
+        let headers = parse_headers(headers)?;
 
         Ok(HttpRequest {
             request_line: RequestLine {
@@ -102,11 +108,36 @@ impl FromStr for HttpRequest {
                 protocol,
                 url,
             },
-            headers: vec![],
+            headers,
         })
     }
 }
 
+fn parse_headers(headers: &[&str]) -> Result<Vec<Header>, HttpParseError> {
+    let mut headers_vec = Vec::with_capacity(headers.len());
+    for header in headers {
+        let parts = header.split(":").collect::<Vec<&str>>();
+        if parts.len() != 2 {
+            return Err(HttpParseError::InvalidHeader);
+        }
+        match parts[0].trim().to_lowercase().as_str() {
+            "host" => headers_vec.push(Header::Host(parts[1].trim().to_string())),
+            "accept" => headers_vec.push(Header::Accept(parts[1].trim().to_string())),
+            "authorization" => headers_vec.push(Header::Authorization(parts[1].trim().to_string())),
+            "referer" => headers_vec.push(Header::Referer(parts[1].trim().to_string())),
+            "user-agent" => headers_vec.push(Header::UserAgent(parts[1].trim().to_string())),
+            "content-type" => headers_vec.push(Header::ContentType(parts[1].trim().to_string())),
+            "content-length" => {
+                match parts[1].trim().parse::<usize>() {
+                    Ok(length) => headers_vec.push(Header::ContentLength(length)),
+                    Err(_) => {return Err(HttpParseError::NonNumericContentLength)}
+                }
+            }
+            _ => headers_vec.push(OtherHeader(parts[0].trim().to_string(), parts[1].trim().to_string()))
+        }
+    }
+    return Ok(vec![]);
+}
 
 pub struct RequestLine{
     verb: Verb ,
