@@ -67,6 +67,18 @@ impl HttpRequest{
     pub fn get_request_line(&self) -> &RequestLine {
         &self.request_line
     }
+
+    pub fn get_method(&self) -> Verb {
+        self.get_request_line().verb.clone()
+    }
+
+    pub fn get_url(&self) -> Uri {
+        self.request_line.url.clone()
+    }
+
+    pub fn get_protocol(&self) -> String {
+        self.get_request_line().protocol.clone()
+    }
 }
 
 impl FromStr for HttpRequest {
